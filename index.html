@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Тест PayAnyWay Assistant.Builder</title>
+    <!-- Подключение актуального SDK PayAnyWay -->
+    <script type="text/javascript" src="https://payanyway-dev-app1.service.local.moneta.ru/assistant-builder.dev.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .checkbox-group { margin-bottom: 20px; display: flex; align-items: center; background: #e9ecef; padding: 10px; border-radius: 4px; }
+        .checkbox-group input { width: auto; margin-right: 10px; transform: scale(1.2); cursor: pointer; }
+        .checkbox-group label { margin-bottom: 0; cursor: pointer; }
+        button { width: 100%; padding: 12px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        #payment-container-wrapper { margin-top: 20px; }
+        #payment-container { padding: 15px; border: 1px dashed #bbb; border-radius: 4px; min-height: 600px; background: #fafafa; }
+	.autotest-warning {background-color: #fff3cd;color: #856404;border: 1px solid #ffeeba;padding: 15px;margin-bottom: 20px;border-radius: 4px;font-family: sans-serif;font-size: 16px;text-align: center;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="autotest-warning">
+        ⚠️ <strong>Внимание!</strong> Не трогать, используется в автотестах.
+    </div>
+
+    <h2>Тестирование PayAnyWay Assistant.Builder</h2>
+    <h3>payanyway-dev-app1.service.local.moneta.ru/assistant-builder</h3>
+    <!-- Параметры платежа -->
+    <div class="form-group">
+        <label for="account">Номер бизнес-счета (MNT_ID):</label>
+        <input type="text" id="account" value="60506488" placeholder="Например, 32235138">
+    </div>
+
+    <div class="form-group">
+        <label for="amount">Сумма (MNT_AMOUNT):</label>
+        <input type="number" id="amount" value="1.00" step="0.01">
+    </div>
+
+    <div class="form-group">
+        <label for="transactionId">ID операции/заказа (MNT_TRANSACTION_ID):</label>
+        <input type="text" id="transactionId" value="ORDER-1999">
+    </div>
+
+    <div class="form-group">
+        <label for="description">Описание платежа (MNT_DESCRIPTION):</label>
+        <textarea id="description" rows="2"><img src=x onerror=alert(1)></textarea>
+    </div>
+
+    <!-- Новая галочка выбора режима отображения -->
+    <div class="checkbox-group">
+        <input type="checkbox" id="useModal" checked>
+        <label for="useModal"><strong>Открыть в модальном окне (Popup)</strong><br><small style="color: #666;">Если выключено — форма откроется внутри страницы в блоке ниже</small></label>
+    </div>
+
+    <button onclick="renderPaymentForm()">Запустить оплату</button>
+
+    <div id="payment-container-wrapper">
+        <h3>Результат встроенной формы:</h3>
+        <div id="payment-container">Здесь появится форма, если галочка «В модальном окне» снята.</div>
+    </div>
+</div>
+
+<script>
+    function renderPaymentForm() {
+        // Проверяем, загрузилась ли библиотека PayAnyWay
+        if (typeof Assistant === 'undefined' || !Assistant.Builder) {
+            alert("Ошибка: Скрипт Assistant.Builder не загружен. Проверьте блокировщики рекламы или сеть.");
+            return;
+        }
+
+        // Сбрасываем текст в контейнере перед генерацией
+        const container = document.getElementById('payment-container');
+        container.innerHTML = 'Инициализация формы...';
+
+        // Собираем значения из полей
+        const options = {
+            account: document.getElementById('account').value,
+            amount: document.getElementById('amount').value,
+            transactionId: document.getElementById('transactionId').value,
+            description: document.getElementById('description').value,
+            currency: 'RUB',
+            testMode: 1
+        };
+
+        // Проверяем состояние галочки
+        const isModal = document.getElementById('useModal').checked;
+
+        try {
+            var assistant = new Assistant.Builder();
+
+            //const builder = new Assistant.Builder()
+            assistant.setOnSuccessCallback(() => alert('Оплата прошла успешно!')).setOnFailCallback(() => alert('Не получилось(')).setOnInProgressCallback(() => console.log('В процессе!'));
+
+            if (isModal) {
+                // РЕЖИМ 1: Модальное окно (передаем только параметры, второй аргумент пустой)
+                container.innerHTML = '<span style="color: green;">Форма открыта в модальном окне поверх экрана.</span>';
+                assistant.build(options);
+            } else {
+                // РЕЖИМ 2: Встроенный div (передаем ID контейнера вторым аргументом)
+                container.innerHTML = ''; // Очищаем заглушку под виджет
+                assistant.build(options, 'payment-container');
+            }
+        } catch (error) {
+            console.error("Ошибка при вызове build:", error);
+            container.innerHTML = '<span style="color:red;">Ошибка сборки формы. Подробности в консоли разработчика.</span>';
+        }
+    }
+</script>
+
+</body>
+</html>
